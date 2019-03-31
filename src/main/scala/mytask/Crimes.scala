@@ -64,6 +64,4 @@ object Crimes extends  App {
     }
     println("-"*35)
   }
-
-  //  def load_data_record()
 }
