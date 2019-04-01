@@ -1,23 +1,36 @@
 package com.mytask
 
-import java.io.FileNotFoundException
-import java.lang.ArrayIndexOutOfBoundsException
+import java.io.File
 
-import scala.collection.immutable.ListMap
 import scala.collection.mutable.ArrayBuffer
 
 object Crimes extends  App {
 
   override def main(args: Array[String]): Unit = {
     try {
-      val file_name = args(0)
-      val crime_records = load_records(file_name)
+      if (args(0) != "-d"){
+        throw new ArrayIndexOutOfBoundsException()
+      }
+      val directory_path = args(1).toString.trim
+      val crime_records = ArrayBuffer[Map[String, String]]()
+      val crime_files = getListOfFiles(directory_path)
+      for (file_name <- crime_files) {
+        crime_records.appendAll(load_records(file_name.getAbsolutePath))
+      }
       val grouped_records = group_records(crime_records)
-      print_top_5(grouped_records)
+      print_records(grouped_records)
+    } catch {
+      case e: ArrayIndexOutOfBoundsException => println("Usage:  java -jar crime.jar -d <absolute_path_to_the_crimes_folder>")
+    }
+  }
 
-    } catch{
-      case e: ArrayIndexOutOfBoundsException => println("Please, specify path to csv file")
-      case e: FileNotFoundException => println(s"Can't open ${e.getMessage}")
+
+  def getListOfFiles(dir: String):List[File] = {
+    val d = new File(dir)
+    if (d.exists && d.isDirectory) {
+      d.listFiles.filter(_.isFile).toList
+    } else {
+      List[File]()
     }
   }
 
@@ -46,21 +59,25 @@ object Crimes extends  App {
     valid_crimes
   }
 
-  def group_records(crime_records: ArrayBuffer[Map[String, String]]): ListMap[(String, String), ArrayBuffer[Map[String, String]]] = {
-    val grouped_records = crime_records.groupBy(record => (record("Latitude"), record("Longitude")))
-    val ordered_records = ListMap(grouped_records.toSeq.sortBy(_._2.size)(Ordering[Int].reverse):_*)
-    ordered_records
+  def group_records(crime_records: ArrayBuffer[Map[String, String]]): ArrayBuffer[((String, String), ArrayBuffer[Map[String, String]])] = {
+    var grouped_records = crime_records.groupBy(record => (record("Latitude"), record("Longitude")))
+    var most_criminal = ArrayBuffer[((String, String), ArrayBuffer[Map[String, String]])]()
+    for (i <- 1 to 5) {
+      val record = grouped_records.toSeq.maxBy(_._2.size)
+      grouped_records -= record._1
+      most_criminal += record
+    }
+    most_criminal
   }
 
-  def print_top_5(records: ListMap[(String, String), ArrayBuffer[Map[String, String]]]): Unit = {
 
-    for (record <- records.slice(0,5)) {
+  def print_records(records:  ArrayBuffer[((String, String), ArrayBuffer[Map[String, String]])]): Unit = {
+    for (record <- records){
       println("-"*35)
       println(record._1+":"+record._2.size)
       for (theft <- record._2) {
         println(theft("Crime type"))
       }
-
     }
     println("-"*35)
   }
