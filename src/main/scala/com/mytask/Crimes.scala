@@ -1,4 +1,4 @@
-package mytask
+package com.mytask
 
 import java.io.FileNotFoundException
 import java.lang.ArrayIndexOutOfBoundsException
