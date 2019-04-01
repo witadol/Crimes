@@ -1,4 +1,8 @@
 package com.mytask
+/**
+  * @author Victor Pobedrya, pobedrik@gmail.com
+  * @version 1.0
+  */
 
 import java.io.File
 
@@ -24,8 +28,11 @@ object Crimes extends  App {
     }
   }
 
-
+  /**
+    * @return Returns list of files in specified directory
+    */
   def getListOfFiles(dir: String):List[File] = {
+
     val d = new File(dir)
     if (d.exists && d.isDirectory) {
       d.listFiles.filter(_.isFile).toList
@@ -34,7 +41,9 @@ object Crimes extends  App {
     }
   }
 
-
+  /**
+    * @return Load all records from csv files with non-empty 'Crime ID' in one ArrayBuffer
+    */
   def load_records(file_name: String): ArrayBuffer[Map[String, String]] = {
     val valid_crimes = ArrayBuffer[Map[String, String]]()
     val bufferedSource = io.Source.fromFile(file_name)
@@ -59,6 +68,10 @@ object Crimes extends  App {
     valid_crimes
   }
 
+
+  /**
+    * @return Group records in locations an returns top 5 most criminal locations
+    */
   def group_records(crime_records: ArrayBuffer[Map[String, String]]): ArrayBuffer[((String, String), ArrayBuffer[Map[String, String]])] = {
     var grouped_records = crime_records.groupBy(record => (record("Latitude"), record("Longitude")))
     var most_criminal = ArrayBuffer[((String, String), ArrayBuffer[Map[String, String]])]()
@@ -71,6 +84,9 @@ object Crimes extends  App {
   }
 
 
+  /**
+    * @return Prints most criminal locations and crimes, each with list of associated theft incidents,
+    */
   def print_records(records:  ArrayBuffer[((String, String), ArrayBuffer[Map[String, String]])]): Unit = {
     for (record <- records){
       println("-"*35)
