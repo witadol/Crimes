@@ -17,7 +17,10 @@ object Crimes extends  App {
       }
       val directory_path = args(1).toString.trim
       val crime_records = ArrayBuffer[Map[String, String]]()
-      val crime_files = getListOfFiles(directory_path)
+      val crime_files = get_files_list(directory_path)
+      if (crime_files.isEmpty){
+        throw new NullPointerException("No such directory: "+args(1))
+      }
       for (file_name <- crime_files) {
         crime_records.appendAll(load_records(file_name.getAbsolutePath))
       }
@@ -25,13 +28,14 @@ object Crimes extends  App {
       print_records(grouped_records)
     } catch {
       case e: ArrayIndexOutOfBoundsException => println("Usage:  java -jar crime.jar -d <absolute_path_to_the_crimes_folder>")
+      case e: NullPointerException => println(e.getMessage)
     }
   }
 
   /**
     * @return Returns list of files in specified directory
     */
-  def getListOfFiles(dir: String):List[File] = {
+  def get_files_list(dir: String):List[File] = {
 
     val d = new File(dir)
     if (d.exists && d.isDirectory) {
